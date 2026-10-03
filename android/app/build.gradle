@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'ru.ladon.remote'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'ru.ladon.remote'
+        minSdk 26
+        targetSdk 35
+        versionCode 11
+        versionName '0.9.0'
+    }
+    sourceSets {
+        main {
+            manifest.srcFile '../AndroidManifest.xml'
+            java.srcDirs = ['../src']
+            res.srcDirs = ['../res']
+            assets.srcDirs = ['../assets']
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies { implementation files('../../third_party/zxing/core-3.5.3.jar') }

@@ -1,0 +1,11 @@
+{
+  "name":"ClickMate",
+  "short_name":"ClickMate",
+  "description":"Локальный пульт для Windows",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#f4f7fa",
+  "theme_color":"#071b2c",
+  "orientation":"portrait-primary",
+  "icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

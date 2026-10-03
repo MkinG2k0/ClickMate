@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#071b2c">
+  <meta name="description" content="ClickMate — локальный пульт для Windows">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <title>ClickMate</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><img src="/icon.svg" alt=""><span>ClickMate</span></div>
+      <button id="connectionButton" class="connection-pill" type="button" aria-label="Подключение к компьютеру"><i></i><span>Не подключено</span></button>
+    </header>
+
+    <main>
+      <section class="view active" data-view="mouse" aria-labelledby="mouseTitle">
+        <div class="section-head"><h1 id="mouseTitle">Мышь</h1><p>Двигайте курсор. Двойное касание с удержанием перетаскивает объекты.</p></div>
+        <div id="touchpad" class="touchpad" tabindex="0" role="application" aria-label="Тачпад">
+          <div class="pad-mark"><span></span><b>Тачпад</b><small>1 палец — курсор · 2 пальца — прокрутка</small></div>
+        </div>
+        <div class="control-grid mouse-buttons">
+          <button data-command='{"type":"click","button":"left"}'>Левый щелчок</button>
+          <button data-command='{"type":"click","button":"right"}'>Правый щелчок</button>
+          <button data-double>Двойной щелчок</button>
+          <button data-command='{"type":"click","button":"middle"}'>Средняя кнопка</button>
+        </div>
+        <div class="quick-row">
+          <button data-action="shortcut.switchwindow"><span>▱</span>Сменить окно</button>
+          <button data-action="shortcut.desktop"><span>⌂</span>Рабочий стол</button>
+        </div>
+      </section>
+
+      <section class="view" data-view="keyboard" aria-labelledby="keyboardTitle">
+        <div class="section-head"><h1 id="keyboardTitle">Клавиатура</h1><p>Текст и клавиши отправляются в активное окно.</p></div>
+        <textarea id="textInput" maxlength="1000" rows="4" placeholder="Введите текст…"></textarea>
+        <button id="sendText" class="primary wide">Ввести текст</button>
+        <div id="keyboardGrid" class="control-grid key-grid"></div>
+      </section>
+
+      <section class="view" data-view="media" aria-labelledby="mediaTitle">
+        <div class="section-head"><h1 id="mediaTitle">Медиа</h1><p>Управление воспроизведением и звуком.</p></div>
+        <button class="now-playing" data-action="media.playpause"><span>▶</span><strong>Пуск / пауза</strong></button>
+        <div id="mediaGrid" class="control-grid"></div>
+      </section>
+
+      <section class="view" data-view="custom" aria-labelledby="customTitle">
+        <div class="section-head inline"><div><h1 id="customTitle">Моя панель</h1><p>Соберите быстрые команды под себя.</p></div><button id="addTile" class="icon-button" aria-label="Добавить кнопку">＋</button></div>
+        <div id="customGrid" class="custom-grid"></div>
+        <div id="customEmpty" class="empty-state"><b>Здесь пока пусто</b><span>Добавьте команды, которыми пользуетесь чаще всего.</span><button class="primary" id="addFirstTile">Добавить кнопку</button></div>
+      </section>
+
+      <section class="view" data-view="settings" aria-labelledby="settingsTitle">
+        <div class="section-head"><h1 id="settingsTitle">Настройки</h1><p>Хранятся только на этом устройстве.</p></div>
+        <div class="settings-list">
+          <label><span><b>Чувствительность</b><small id="sensitivityValue">1,0×</small></span><input id="sensitivity" type="range" min="0.5" max="3" step="0.1" value="1"></label>
+          <label><span><b>Обратная прокрутка</b><small>Изменить направление жеста</small></span><input id="reverseScroll" type="checkbox" role="switch"></label>
+          <label><span><b>Тёмная тема</b><small>Меньше света вечером</small></span><input id="darkTheme" type="checkbox" role="switch"></label>
+        </div>
+        <button id="installButton" class="secondary wide" hidden>Установить ClickMate</button>
+        <button id="forgetButton" class="danger-text wide">Забыть этот компьютер</button>
+        <p class="version">ClickMate PWA 0.10 · локальная версия</p>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Разделы">
+      <button class="active" data-nav="mouse"><span>↖</span>Мышь</button>
+      <button data-nav="keyboard"><span>⌨</span>Клавиши</button>
+      <button data-nav="media"><span>♫</span>Медиа</button>
+      <button data-nav="custom"><span>▦</span>Панель</button>
+      <button data-nav="settings"><span>⚙</span>Ещё</button>
+    </nav>
+  </div>
+
+  <dialog id="pairDialog">
+    <form method="dialog" class="dialog-card" id="pairForm">
+      <button class="dialog-close" value="cancel" aria-label="Закрыть">×</button>
+      <h2>Подключить компьютер</h2>
+      <p>Откройте ClickMate на ПК и введите адрес и код с его экрана.</p>
+      <label>Адрес ПК<input id="pcAddress" inputmode="decimal" autocomplete="off" placeholder="192.168.0.10" required></label>
+      <label>Код<input id="pinInput" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" placeholder="0000" required></label>
+      <div id="pairError" class="form-error" role="alert"></div>
+      <button id="pairSubmit" class="primary wide" value="default">Подключиться</button>
+    </form>
+  </dialog>
+
+  <dialog id="tileDialog">
+    <form method="dialog" class="dialog-card" id="tileForm">
+      <button class="dialog-close" value="cancel" aria-label="Закрыть">×</button>
+      <h2>Новая кнопка</h2>
+      <label>Команда<select id="tileAction"></select></label>
+      <label>Название<input id="tileLabel" maxlength="24" required></label>
+      <div class="field-row"><label>Размер<select id="tileSpan"><option value="1">1 ячейка</option><option value="2">2 ячейки</option><option value="3">3 ячейки</option></select></label><label>Цвет<select id="tileColor"><option value="blue">Синий</option><option value="green">Зелёный</option><option value="orange">Оранжевый</option><option value="violet">Фиолетовый</option><option value="slate">Графитовый</option></select></label></div>
+      <button class="primary wide" value="default">Добавить</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/crypto.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
