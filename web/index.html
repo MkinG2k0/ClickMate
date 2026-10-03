@@ -63,7 +63,7 @@
         </div>
         <button id="installButton" class="secondary wide" hidden>Установить ClickMate</button>
         <button id="forgetButton" class="danger-text wide">Забыть этот компьютер</button>
-        <p class="version">ClickMate PWA 0.10 · локальная версия</p>
+        <p class="version">ClickMate PWA 0.11</p>
       </section>
     </main>
 
@@ -78,9 +78,10 @@
 
   <dialog id="pairDialog">
     <form method="dialog" class="dialog-card" id="pairForm">
-      <button class="dialog-close" value="cancel" aria-label="Закрыть">×</button>
+      <button class="dialog-close" type="button" data-close="pairDialog" aria-label="Закрыть">×</button>
       <h2>Подключить компьютер</h2>
       <p>Откройте ClickMate на ПК и введите адрес и код с его экрана.</p>
+      <button id="scanQrButton" class="secondary wide scan-button" type="button"><span>▣</span> Сканировать QR</button>
       <label>Адрес ПК<input id="pcAddress" inputmode="decimal" autocomplete="off" placeholder="192.168.0.10" required></label>
       <label>Код<input id="pinInput" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" placeholder="0000" required></label>
       <div id="pairError" class="form-error" role="alert"></div>
@@ -90,13 +91,25 @@
 
   <dialog id="tileDialog">
     <form method="dialog" class="dialog-card" id="tileForm">
-      <button class="dialog-close" value="cancel" aria-label="Закрыть">×</button>
+      <button class="dialog-close" type="button" data-close="tileDialog" aria-label="Закрыть">×</button>
       <h2>Новая кнопка</h2>
       <label>Команда<select id="tileAction"></select></label>
       <label>Название<input id="tileLabel" maxlength="24" required></label>
       <div class="field-row"><label>Размер<select id="tileSpan"><option value="1">1 ячейка</option><option value="2">2 ячейки</option><option value="3">3 ячейки</option></select></label><label>Цвет<select id="tileColor"><option value="blue">Синий</option><option value="green">Зелёный</option><option value="orange">Оранжевый</option><option value="violet">Фиолетовый</option><option value="slate">Графитовый</option></select></label></div>
       <button class="primary wide" value="default">Добавить</button>
     </form>
+  </dialog>
+
+  <dialog id="scannerDialog">
+    <div class="dialog-card scanner-card">
+      <button class="dialog-close" id="closeScanner" type="button" aria-label="Закрыть сканер">×</button>
+      <h2>Сканировать QR</h2>
+      <p>Наведите камеру на QR-код в окне ClickMate на компьютере.</p>
+      <div class="camera-frame"><video id="scannerVideo" autoplay muted playsinline></video><div class="scan-corners" aria-hidden="true"></div></div>
+      <div id="scannerStatus" class="scanner-status" role="status">Запускаем камеру…</div>
+      <button id="chooseQrImage" class="secondary wide" type="button">Выбрать фото QR</button>
+      <input id="qrImageInput" type="file" accept="image/*" capture="environment" hidden>
+    </div>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

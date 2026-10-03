@@ -40,6 +40,8 @@ function actionCommand(id){const action=actions[id];return action?{type:action.t
 
 function showView(id){$$('.view').forEach(view=>view.classList.toggle('active',view.dataset.view===id));$$('[data-nav]').forEach(button=>button.classList.toggle('active',button.dataset.nav===id));prefs.set('view',id);window.scrollTo(0,0)}
 $$('[data-nav]').forEach(button=>button.addEventListener('click',()=>showView(button.dataset.nav)));
+$$('[data-close]').forEach(button=>button.addEventListener('click',()=>document.getElementById(button.dataset.close).close()));
+$$('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close()}));
 $$('[data-command]').forEach(button=>button.addEventListener('click',()=>command(JSON.parse(button.dataset.command))));
 $$('[data-action]').forEach(button=>button.addEventListener('click',()=>command(actionCommand(button.dataset.action))));
 $('[data-double]').addEventListener('click',async()=>{await command({type:'click',button:'left'});await command({type:'click',button:'left'})});
@@ -59,6 +61,25 @@ pad.addEventListener('pointerup',endPointer);pad.addEventListener('pointercancel
 function openPairDialog(){const address=prefs.get('address',privateAddress(location.hostname)?location.hostname:'');$('#pcAddress').value=address;$('#pinInput').value='';$('#pairError').textContent='';$('#pairDialog').showModal();setTimeout(()=>$('#pinInput').focus(),100)}
 $('#connectionButton').addEventListener('click',()=>{if(state.connected){if(confirm('Отключиться от '+state.pcName+'?'))disconnect()}else openPairDialog()});
 $('#pairForm').addEventListener('submit',async event=>{event.preventDefault();const address=$('#pcAddress').value.trim(),pin=$('#pinInput').value.trim();if(!privateAddress(address)){ $('#pairError').textContent='Введите локальный IPv4-адрес компьютера';return}if(!/^\d{4}$/.test(pin)){ $('#pairError').textContent='Введите четыре цифры с экрана ПК';return}const submit=$('#pairSubmit');submit.disabled=true;$('#pairError').textContent='';try{await connectPc(address,pin)}catch(error){$('#pairError').textContent=error.message}finally{submit.disabled=false}});
+
+let scannerStream=null,scannerFrame=0,scannerDetector=null,scannerBusy=false,scannerReturning=false;
+function scannerStatus(message,error=false){const status=$('#scannerStatus');status.textContent=message;status.classList.toggle('error',error)}
+function parsePairingLink(value){let link;try{link=new URL(value)}catch{throw new Error('Это не QR-код ClickMate')}if(link.protocol!=='clickmate:'&&link.protocol!=='ladon:')throw new Error('Это не QR-код ClickMate');const address=link.searchParams.get('ip')||'',pin=link.searchParams.get('pin')||'';if(!privateAddress(address)||!/^\d{4}$/.test(pin))throw new Error('В QR-коде нет адреса и кода ClickMate');return{address,pin}}
+function stopScanner(){cancelAnimationFrame(scannerFrame);scannerFrame=0;scannerBusy=false;if(scannerStream){scannerStream.getTracks().forEach(track=>track.stop());scannerStream=null}const video=$('#scannerVideo');video.srcObject=null}
+async function usePairingQr(raw){let pairing;try{pairing=parsePairingLink(raw)}catch(error){scannerStatus(error.message,true);return}stopScanner();scannerReturning=false;$('#scannerDialog').close();$('#pcAddress').value=pairing.address;$('#pinInput').value=pairing.pin;$('#pairError').textContent='';$('#pairDialog').showModal();const submit=$('#pairSubmit');submit.disabled=true;try{await connectPc(pairing.address,pairing.pin)}catch(error){$('#pairError').textContent=error.message}finally{submit.disabled=false}}
+async function detectQr(source){if(scannerBusy||!scannerDetector)return;scannerBusy=true;try{const codes=await scannerDetector.detect(source);if(codes.length&&codes[0].rawValue)await usePairingQr(codes[0].rawValue)}catch(error){if($('#scannerDialog').open)scannerStatus('Не удалось прочитать QR. Попробуйте ещё раз.',true)}finally{scannerBusy=false}}
+async function scanCamera(){if(!$('#scannerDialog').open||!scannerStream)return;const video=$('#scannerVideo');if(video.readyState>=2)await detectQr(video);scannerFrame=requestAnimationFrame(scanCamera)}
+async function openScanner(){
+  $('#pairDialog').close();$('#scannerDialog').showModal();scannerReturning=true;scannerStatus('Запускаем камеру…');
+  if(!('BarcodeDetector'in window)){scannerStatus('Этот браузер не поддерживает QR-сканирование. Откройте ClickMate в Chrome на Android.',true);return}
+  try{scannerDetector=new BarcodeDetector({formats:['qr_code']});scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});const video=$('#scannerVideo');video.srcObject=scannerStream;await video.play();scannerStatus('Наведите камеру на QR-код');scanCamera()}
+  catch(error){stopScanner();scannerStatus(error&&error.name==='NotAllowedError'?'Разрешите доступ к камере в настройках браузера.':'Не удалось открыть камеру. Можно выбрать фото QR.',true)}
+}
+function closeScanner(){stopScanner();scannerReturning=true;$('#scannerDialog').close()}
+$('#scanQrButton').addEventListener('click',openScanner);$('#closeScanner').addEventListener('click',closeScanner);
+$('#scannerDialog').addEventListener('close',()=>{stopScanner();if(scannerReturning&&!$('#pairDialog').open){scannerReturning=false;$('#pairDialog').showModal()}});
+$('#chooseQrImage').addEventListener('click',()=>$('#qrImageInput').click());
+$('#qrImageInput').addEventListener('change',async event=>{const file=event.target.files&&event.target.files[0];event.target.value='';if(!file)return;if(!scannerDetector){scannerStatus('Этот браузер не умеет распознавать QR с фото.',true);return}try{const image=await createImageBitmap(file);await detectQr(image);image.close()}catch{scannerStatus('QR-код на фото не найден.',true)}});
 
 function loadTiles(){try{return JSON.parse(prefs.get('tiles','[]'))}catch{return[]}}
 function saveTiles(tiles){prefs.set('tiles',JSON.stringify(tiles));renderTiles()}
