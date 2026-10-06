@@ -128,6 +128,8 @@ internal static class ProtocolTests {
         var dragDown=Input.Build(new Dictionary<string,object>{{"type","button"},{"button","left"},{"state","down"}});
         var dragUp=Input.Build(new Dictionary<string,object>{{"type","button"},{"button","left"},{"state","up"}});
         Check(dragDown.Length==1 && dragDown[0].data.mouse.flags==2 && dragUp.Length==1 && dragUp[0].data.mouse.flags==4,"drag holds and releases left mouse button");
+        var disconnectRelease=Input.BuildHeldMouseRelease();
+        Check(disconnectRelease.Length==1 && disconnectRelease[0].data.mouse.flags==4,"disconnect releases only a held left button without synthetic right click");
         var text=Input.Build(new Dictionary<string,object>{{"type","text"},{"text","Я\n"}});
         Check(text.Length==4 && text[0].data.key.scan=='Я' && text[0].data.key.flags==4 && text[1].data.key.flags==6 && text[2].data.key.vk==13,"Unicode text and newline mapping");
     }

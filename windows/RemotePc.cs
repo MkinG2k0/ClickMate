@@ -360,6 +360,7 @@ internal static class Input {
     [StructLayout(LayoutKind.Sequential)] internal struct MOUSE { public int dx,dy; public uint mouseData,flags,time; public UIntPtr extra; }
     [StructLayout(LayoutKind.Sequential)] internal struct KEY { public ushort vk,scan; public uint flags,time; public UIntPtr extra; }
     [DllImport("user32.dll",SetLastError=true)] static extern uint SendInput(uint count,INPUT[] input,int size);
+    static bool leftButtonDown;
     static readonly Dictionary<string,ushort> Keys = new Dictionary<string,ushort> {
         {"enter",13},{"backspace",8},{"tab",9},{"escape",27},{"space",32},
         {"left",37},{"up",38},{"right",39},{"down",40},{"delete",46},
@@ -399,8 +400,14 @@ internal static class Input {
     static void Send(INPUT[] inputs) { if(inputs.Length>0 && SendInput((uint)inputs.Length,inputs,Marshal.SizeOf(typeof(INPUT))) != inputs.Length) throw new InvalidOperationException(); }
     public static void Apply(Dictionary<string,object> c) {
         Send(Build(c));
+        if(RemoteServer.Get(c,"type")=="button") leftButtonDown=RemoteServer.Get(c,"state")=="down";
     }
-    internal static void ReleaseMouseButtons() { try { Send(new[]{Mouse(0,0,4,0),Mouse(0,0,16,0),Mouse(0,0,64,0)}); } catch(InvalidOperationException) {} }
+    internal static INPUT[] BuildHeldMouseRelease() { return new[]{Mouse(0,0,4,0)}; }
+    internal static void ReleaseMouseButtons() {
+        if(!leftButtonDown)return;
+        try { Send(BuildHeldMouseRelease()); } catch(InvalidOperationException) {}
+        finally { leftButtonDown=false; }
+    }
     internal static INPUT[] Build(Dictionary<string,object> c) {
         string type=RemoteServer.Get(c,"type");
         switch(type) {
