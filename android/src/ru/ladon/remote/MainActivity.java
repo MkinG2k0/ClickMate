@@ -145,7 +145,7 @@ public class MainActivity extends Activity {
         group("Приложение");toggle("Отклик при нажатии","haptic",true,null);toggle("Не гасить экран при подключении","awake",true,this::applyAwake);
         toggle("Тёмная тема","dark",false,()->{int position=content.getScrollY();setTheme(prefs.getBoolean("dark",false)?android.R.style.Theme_Material_NoActionBar:android.R.style.Theme_Material_Light_NoActionBar);render();content.post(()->content.scrollTo(0,position));});
         group("Свои разделы");body.addView(button("Порядок разделов",v->editSectionOrder()));body.addView(primary("+ Создать раздел",v->editSection(null)));for(JSONObject s:sections)sectionSettingsRow(s);
-        group("ClickMate 0.9.0");note("Четырёхзначный код нужен только при первом знакомстве. Доверенный телефон подключается автоматически даже после перезапуска ПК.");
+        group("ClickMate 0.11.0");note("Четырёхзначный код нужен только при первом знакомстве. Доверенный телефон подключается автоматически даже после перезапуска ПК.");
     }
     void sectionSettingsRow(JSONObject section){
         String name=section.optString("name");
