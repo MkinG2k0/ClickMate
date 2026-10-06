@@ -13,8 +13,8 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-[assembly: System.Reflection.AssemblyVersion("0.11.0.0")]
-[assembly: System.Reflection.AssemblyFileVersion("0.11.0.0")]
+[assembly: System.Reflection.AssemblyVersion("0.12.0.0")]
+[assembly: System.Reflection.AssemblyFileVersion("0.12.0.0")]
 
 internal static class Program {
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr handle);

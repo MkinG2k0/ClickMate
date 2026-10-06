@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     static final String[] ICON_VALUES={"","★","▶","♫","♪","⌨","↖","▣","●","▱"};
     static final String[] COLOR_NAMES={"Обычный","Синий","Зелёный","Оранжевый","Красный","Фиолетовый","Графитовый"};
     static final String[] COLOR_VALUES={"","#245D94","#2E7D32","#B45309","#B3261E","#6B4EFF","#455A64"};
+    static final String WINDOWS_DOWNLOAD_URL="https://clickmate-site.vercel.app/#download";
     static {
         add("media","volumeup","Громче +","Медиа");add("media","volumedown","Тише −","Медиа");
         add("media","mute","Без звука","Медиа");add("media","playpause","Пуск / пауза","Медиа");
@@ -90,12 +91,12 @@ public class MainActivity extends Activity {
         content=new ScrollView(this);content.setFillViewport(true);body=column();body.setPadding(dp(20),dp(14),dp(20),dp(28));content.addView(body);root.addView(content,new LinearLayout.LayoutParams(-1,0,1));showPage();
     }
     ArrayList<String> sectionOrder(){
-        ArrayList<String> all=new ArrayList<>(Arrays.asList("mouse","keyboard","media","navigation")),ordered=new ArrayList<>();
+        ArrayList<String> all=new ArrayList<>(Arrays.asList("mouse","film","keyboard","media","navigation")),ordered=new ArrayList<>();
         for(JSONObject section:sections)all.add(section.optString("id"));
         try{JSONArray saved=new JSONArray(prefs.getString("section_order","[]"));for(int i=0;i<saved.length();i++){String id=saved.optString(i);if(all.contains(id)&&!ordered.contains(id))ordered.add(id);}}catch(Exception ignored){}
         for(String id:all)if(!ordered.contains(id))ordered.add(id);return ordered;
     }
-    String sectionTitle(String id){switch(id){case "mouse":return "Мышь";case "keyboard":return "Клавиатура";case "media":return "Медиа";case "navigation":return "Навигация";default:JSONObject s=section(id);return s==null?"Раздел":s.optString("name");}}
+    String sectionTitle(String id){switch(id){case "mouse":return "Мышь";case "film":return "Фильм";case "keyboard":return "Клавиатура";case "media":return "Медиа";case "navigation":return "Навигация";default:JSONObject s=section(id);return s==null?"Раздел":s.optString("name");}}
     void tabs(){tabRow.removeAllViews();for(String id:sectionOrder())tab(id,sectionTitle(id));tabRow.addView(button("+ Раздел",v->editSection(null)));}
     void editSectionOrder(){
         hideKeyboard();ArrayList<String> order=sectionOrder();LinearLayout box=column();box.setPadding(dp(14),dp(6),dp(14),dp(12));
@@ -114,7 +115,7 @@ public class MainActivity extends Activity {
     void tab(String id,String title){Button b=button(title,v->select(id));b.setOnLongClickListener(v->{editSectionOrder();return true;});b.setTextColor(current.equals(id)?paper:accent);b.setBackgroundTintList(ColorStateList.valueOf(current.equals(id)?accent:surface));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-2,dp(48));p.rightMargin=dp(6);tabRow.addView(b,p);if(current.equals(id))b.post(()->tabs.smoothScrollTo(Math.max(0,b.getLeft()-dp(16)),0));}
     void select(String id){rememberDraft();current=id;prefs.edit().putString("tab",id).apply();showPage();content.scrollTo(0,0);}
     void rememberDraft(){if(text!=null)draft=text.getText().toString();text=null;}
-    void showPage(){body.removeAllViews();dx=dy=scroll=0;switch(current){case "mouse":mousePage();break;case "keyboard":keyboardPage();break;case "media":mediaPage();break;case "navigation":navigationPage();break;case "settings":settingsPage();break;default:JSONObject s=section(current);if(s==null){current="mouse";mousePage();}else customPage(s);}tabs();}
+    void showPage(){body.removeAllViews();dx=dy=scroll=0;switch(current){case "mouse":mousePage();break;case "film":filmPage();break;case "keyboard":keyboardPage();break;case "media":mediaPage();break;case "navigation":navigationPage();break;case "settings":settingsPage();break;default:JSONObject s=section(current);if(s==null){current="mouse";mousePage();}else customPage(s);}tabs();}
     void title(String heading,String subtitle){TextView t=label(heading,28);t.setTypeface(null,Typeface.BOLD);body.addView(t);note(subtitle);}
     void note(String value){TextView n=label(value,14);n.setTextColor(muted);n.setPadding(0,dp(6),0,dp(16));body.addView(n);}
     void group(String value){TextView t=label(value,18);t.setTypeface(null,Typeface.BOLD);t.setPadding(0,dp(18),0,dp(10));body.addView(t);}
@@ -123,6 +124,18 @@ public class MainActivity extends Activity {
         int height=Math.max(210,Math.min(340,(int)(getResources().getDisplayMetrics().heightPixels/getResources().getDisplayMetrics().density*.36f)));body.addView(pad,new LinearLayout.LayoutParams(-1,dp(height)));pad.setOnTouchListener(this::touch);
         grid("click.left","click.right");row(body,new String[]{"Двойной щелчок","Средняя кнопка"},new Runnable[]{()->{if(!requireConnection())return;feedback();send(command(find("click.left")),null);send(command(find("click.left")),null);},()->act("click.middle")});
         note("Удержание пальца на месте — правый щелчок. Для перетаскивания коснитесь, затем быстро коснитесь ещё раз и ведите палец.");group("Быстрые действия");grid("shortcut.switchwindow","shortcut.desktop");
+    }
+    void filmPage(){
+        TileGrid grid=new TileGrid(this,null);body.addView(grid);
+        Button quieter=button(find("media.volumedown").title,v->act("media.volumedown"));
+        Button louder=button(find("media.volumeup").title,v->act("media.volumeup"));
+        Button previous=button("←",v->act("media.previous"));previous.setContentDescription(find("media.previous").title);
+        Button playPause=button(find("media.playpause").title,v->act("media.playpause"));
+        Button next=button("→",v->act("media.next"));next.setContentDescription(find("media.next").title);
+        for(Button tile:new Button[]{quieter,louder,previous,playPause,next}){tile.setTextSize(13);tile.setPadding(dp(5),dp(4),dp(5),dp(4));}
+        grid.tile(quieter,1,88);grid.tile(new View(this),1,88);grid.tile(louder,1,88);
+        grid.tile(previous,1,88);grid.tile(playPause,1,88);grid.tile(next,1,88);
+        grid.tile(touchpad(),3,220);
     }
     void keyboardPage(){
         title("Клавиатура","Текст отправляется в активное окно на ПК.");text=field("Введите текст…",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,1000);text.setMinLines(2);text.setText(draft);body.addView(text);
@@ -145,7 +158,7 @@ public class MainActivity extends Activity {
         group("Приложение");toggle("Отклик при нажатии","haptic",true,null);toggle("Не гасить экран при подключении","awake",true,this::applyAwake);
         toggle("Тёмная тема","dark",false,()->{int position=content.getScrollY();setTheme(prefs.getBoolean("dark",false)?android.R.style.Theme_Material_NoActionBar:android.R.style.Theme_Material_Light_NoActionBar);render();content.post(()->content.scrollTo(0,position));});
         group("Свои разделы");body.addView(button("Порядок разделов",v->editSectionOrder()));body.addView(primary("+ Создать раздел",v->editSection(null)));for(JSONObject s:sections)sectionSettingsRow(s);
-        group("ClickMate 0.11.0");note("Четырёхзначный код нужен только при первом знакомстве. Доверенный телефон подключается автоматически даже после перезапуска ПК.");
+        group("ClickMate 0.12.0");note("Четырёхзначный код нужен только при первом знакомстве. Доверенный телефон подключается автоматически даже после перезапуска ПК.");
     }
     void sectionSettingsRow(JSONObject section){
         String name=section.optString("name");
@@ -244,6 +257,7 @@ public class MainActivity extends Activity {
         TextView discoveryStatus=label("Ищем компьютеры…",13);discoveryStatus.setTextColor(muted);discoveryStatus.setPadding(0,dp(8),0,dp(4));box.addView(discoveryStatus);LinearLayout found=column();box.addView(found);
         EditText address=field("IP-адрес компьютера",InputType.TYPE_CLASS_PHONE,15);String savedAddress=prefs.getString("known_address",prefs.getString("address",""));address.setText(savedAddress);EditText pin=field("Код из 4 цифр",InputType.TYPE_CLASS_NUMBER,4);if(savedAddress.equals(prefs.getString("known_address","")))pin.setText(prefs.getString("known_pin",""));
         Button refresh=button("Обновить список",v->discover(found,discoveryStatus,address,pin));box.addView(refresh);TextView manual=label("Или подключитесь вручную",13);manual.setTextColor(muted);manual.setPadding(0,dp(12),0,0);box.addView(manual);box.addView(address);box.addView(pin);
+        TextView downloadPc=label("Нет программы на компьютере? Скачать ClickMate для Windows",14);downloadPc.setTextColor(accent);downloadPc.setGravity(Gravity.CENTER);downloadPc.setPadding(dp(8),dp(16),dp(8),dp(8));downloadPc.setClickable(true);downloadPc.setFocusable(true);downloadPc.setOnClickListener(v->{try{startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(WINDOWS_DOWNLOAD_URL)));}catch(Exception ex){toast("Не удалось открыть страницу загрузки");}});box.addView(downloadPc);
         AlertDialog dialog=new AlertDialog.Builder(this).setTitle("Подключить ПК").setView(box).setNeutralButton("Сканировать QR",(d,w)->scan()).setNegativeButton("Отмена",null).setPositiveButton("Подключиться",null).create();dialog.setOnShowListener(d->{dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{String ip=address.getText().toString().trim(),code=pin.getText().toString(),token=prefs.getString("known_token","");if(!privateAddress(ip)){address.setError("Выберите найденный ПК или введите локальный IPv4");return;}if(ip.equals(pin.getTag())&&validToken(token)){dialog.dismiss();resume(ip,token);return;}if(!code.matches("[0-9]{4}")){pin.setError("Введите 4 цифры");return;}dialog.dismiss();pair(ip,code);});discover(found,discoveryStatus,address,pin);});showDialog(dialog);
     }
     void discover(LinearLayout found,TextView status,EditText address,EditText pin){

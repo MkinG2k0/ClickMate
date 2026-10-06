@@ -38,6 +38,7 @@ public class UiTests extends Instrumentation {
         try{
             Intent launch=new Intent(Intent.ACTION_MAIN).setClassName("ru.ladon.remote","ru.ladon.remote.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
             Activity app=startActivitySync(launch);settle();exists("ClickMate");
+            tap("Фильм");exists("Тише −");exists("Громче +");exists("Пуск / пауза");exists("＋\n\nТачпад");threeColumns("Предыдущий","Пуск / пауза","Следующий");screenshot("film");
             tap("Медиа");exists("Громче +");exists("▶  /  Ⅱ     Пуск / пауза");screenshot("media");
             tap("Навигация");exists("Новая вкладка");
             tap("Настройки");find("Чувствительность мыши · 1.0×",false);report("default sensitivity 1x");scrollTo("Тёмная тема");tap("Тёмная тема");scrollTo("+ Создать раздел");screenshot("settings");tap("+ Создать раздел");
@@ -67,7 +68,7 @@ public class UiTests extends Instrumentation {
             tap("Настройки");scrollTo("Порядок разделов");tap("Порядок разделов");drag("Cinema2","Мышь");tap("Сохранить");
             String savedOrder=getTargetContext().getSharedPreferences("MainActivity",0).getString("section_order","[]");
             if(!new org.json.JSONArray(savedOrder).optString(0).startsWith("custom-"))throw new AssertionError("Section order not saved: "+savedOrder);report("custom section dragged before built-in sections");
-            scrollTo("Cinema2 · удалить");tap("Cinema2 · удалить");tap("Отмена");exists("Cinema2 · удалить");scrollTo("Cinema2 · удалить");tap("Cinema2 · удалить");tap("Удалить");tap("Мышь");exists("Левый щелчок");report("delete confirmation and cancellation");
+            scrollTo("Cinema2 · удалить");tap("Cinema2 · удалить");tap("Отмена");exists("Cinema2 · удалить");scrollTo("Cinema2 · удалить");tap("Cinema2 · удалить");tap("Удалить");runOnMainSync(()->app.onBackPressed());settle();exists("Левый щелчок");report("delete confirmation and cancellation");
             tap("Сканировать QR");exists("Назад");screenshot("scanner");tap("Назад");exists("Левый щелчок");report("camera scanner opens and returns to remote");
             Bundle result=new Bundle();result.putString("stream","ALL UI CHECKS PASSED\n");finish(Activity.RESULT_OK,result);
         }catch(Throwable ex){try{screenshot("failure");}catch(Exception ignored){}Bundle result=new Bundle();result.putString("stream","FAIL: "+ex.toString()+"\n");finish(Activity.RESULT_CANCELED,result);}
