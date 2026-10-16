@@ -235,7 +235,7 @@ export default function Home() {
       <footer className="footer shell">
         <Brand />
         <p>Локальный пульт для Windows с телефона.</p>
-        <div><a href="/privacy.html">Политика конфиденциальности</a><a href="/terms.html">Условия использования</a><a href={GITHUB_URL} target="_blank" rel="noreferrer"><Github size={18} /> GitHub</a><a href="#top">Наверх</a></div>
+        <div><a href="/privacy">Политика конфиденциальности</a><a href="/terms">Условия использования</a><a href={GITHUB_URL} target="_blank" rel="noreferrer"><Github size={18} /> GitHub</a><a href="#top">Наверх</a></div>
       </footer>
     </main>
   );
