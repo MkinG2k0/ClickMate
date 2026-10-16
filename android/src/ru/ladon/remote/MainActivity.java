@@ -158,7 +158,19 @@ public class MainActivity extends Activity {
         group("Приложение");toggle("Отклик при нажатии","haptic",true,null);toggle("Не гасить экран при подключении","awake",true,this::applyAwake);
         toggle("Тёмная тема","dark",false,()->{int position=content.getScrollY();setTheme(prefs.getBoolean("dark",false)?android.R.style.Theme_Material_NoActionBar:android.R.style.Theme_Material_Light_NoActionBar);render();content.post(()->content.scrollTo(0,position));});
         group("Свои разделы");body.addView(button("Порядок разделов",v->editSectionOrder()));body.addView(primary("+ Создать раздел",v->editSection(null)));for(JSONObject s:sections)sectionSettingsRow(s);
-        group("ClickMate 0.12.0");note("Четырёхзначный код нужен только при первом знакомстве. Доверенный телефон подключается автоматически даже после перезапуска ПК.");
+        group("Документы");
+        body.addView(button("Политика конфиденциальности",v->showLegal("Политика конфиденциальности","privacy.txt")));
+        body.addView(button("Условия использования",v->showLegal("Условия использования","terms.txt")));
+        group("ClickMate 0.12.1");note("Четырёхзначный код нужен только при первом знакомстве. Доверенный телефон подключается автоматически даже после перезапуска ПК.");
+    }
+    void showLegal(String title,String file){
+        StringBuilder document=new StringBuilder();
+        try(BufferedReader reader=new BufferedReader(new InputStreamReader(getAssets().open("legal/"+file),StandardCharsets.UTF_8))){
+            String line;while((line=reader.readLine())!=null)document.append(line).append('\n');
+        }catch(IOException ex){new AlertDialog.Builder(this).setTitle(title).setMessage("Не удалось открыть документ. Попробуйте открыть его снова.").setPositiveButton("Закрыть",null).show();return;}
+        TextView text=label(document.toString(),16);text.setTextIsSelectable(true);text.setPadding(dp(20),dp(12),dp(20),dp(20));
+        ScrollView scroll=new ScrollView(this);scroll.addView(text);
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle(title).setView(scroll).setPositiveButton("Закрыть",null).create();showDialog(dialog);
     }
     void sectionSettingsRow(JSONObject section){
         String name=section.optString("name");
